@@ -3,7 +3,6 @@ import sys
 from typing import List, Optional
 from pathlib import Path
 
-# LangChain imports
 from langchain_ollama import ChatOllama
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -17,77 +16,55 @@ from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain.retrievers import ContextualCompressionRetriever
 
 
-# ======================= CONFIGURAÇÕES =======================
-
 class Config:
-    """Configurações centralizadas do agente RAG"""
+    """Configurações do sistema RAG"""
     
-    # Caminhos
     BASE_DIR = Path(__file__).parent
     PDF_PATH = BASE_DIR / "data" / "nr-06-atualizada-2022-1.pdf"
     VECTORSTORE_PATH = BASE_DIR / "vectorstore"
     
-    # Ollama
     OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3")
     OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-    OLLAMA_TEMPERATURE = 0.0  # Temperatura zero para máxima precisão e consistência
+    OLLAMA_TEMPERATURE = 0.0
     
-    # Embeddings (modelo multilíngue otimizado para português)
     EMBEDDING_MODEL = os.environ.get(
         "EMBEDDING_MODEL", 
         "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     )
     
-    # Chunking - parâmetros otimizados para documentos regulatórios
     CHUNK_SIZE = 1200
-    CHUNK_OVERLAP = 200  # Overlap maior para preservar contexto
+    CHUNK_OVERLAP = 200
     
-    # Retrieval
-    TOP_K = 4  # Número de chunks a recuperar
-    FETCH_K = 10  # Candidatos iniciais para MMR
-    USE_MMR = True  # Usar Maximal Marginal Relevance
-    USE_RERANKER = True  # Usar CrossEncoder para reranking
+    TOP_K = 4
+    FETCH_K = 10
+    USE_MMR = True
+    USE_RERANKER = True
     
-    # CrossEncoder
     RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-12-v2"
 
 
-# ======================= FUNÇÕES PRINCIPAIS =======================
-
 def verificar_pdf() -> bool:
-    """Verifica se o PDF existe no caminho especificado"""
+    """Verifica existência do PDF"""
     if not Config.PDF_PATH.exists():
-        print(f"❌ ERRO: PDF não encontrado em {Config.PDF_PATH}")
-        print(f"   Certifique-se de que o arquivo está no local correto.")
+        print(f"Erro: PDF não encontrado em {Config.PDF_PATH}")
         return False
-    print(f"✓ PDF encontrado: {Config.PDF_PATH}")
+    print(f"PDF encontrado: {Config.PDF_PATH.name}")
     return True
 
 
 def carregar_e_dividir_documento(pdf_path: Path) -> List:
-    """
-    Carrega o PDF e divide em chunks
+    """Carrega PDF e divide em chunks"""
+    print(f"\nCarregando: {pdf_path.name}")
     
-    Args:
-        pdf_path: Caminho para o arquivo PDF
-        
-    Returns:
-        Lista de documentos (chunks)
-    """
-    print(f"\n📄 Carregando PDF: {pdf_path.name}")
-    
-    # Carregar PDF
     loader = PyPDFLoader(str(pdf_path))
     documentos = loader.load()
     
-    print(f"   └─ {len(documentos)} páginas carregadas")
+    print(f"Páginas carregadas: {len(documentos)}")
     
-    # Adicionar número de página em formato legível
     for doc in documentos:
         if "page" in doc.metadata:
             doc.metadata["page_number"] = doc.metadata["page"] + 1
     
-    # Configurar text splitter
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=Config.CHUNK_SIZE,
         chunk_overlap=Config.CHUNK_OVERLAP,
@@ -95,60 +72,38 @@ def carregar_e_dividir_documento(pdf_path: Path) -> List:
         length_function=len,
     )
     
-    # Dividir em chunks
     chunks = splitter.split_documents(documentos)
-    
-    print(f"   └─ {len(chunks)} chunks criados (tamanho: {Config.CHUNK_SIZE}, overlap: {Config.CHUNK_OVERLAP})")
+    print(f"Chunks criados: {len(chunks)}")
     
     return chunks
 
 
 def construir_vectorstore(chunks: List, caminho_salvar: Optional[Path] = None):
-    """
-    Constrói o vectorstore FAISS com embeddings
+    """Constrói vectorstore FAISS"""
+    print(f"\nCriando embeddings: {Config.EMBEDDING_MODEL.split('/')[-1]}")
     
-    Args:
-        chunks: Lista de documentos divididos
-        caminho_salvar: Caminho para salvar o vectorstore (opcional)
-        
-    Returns:
-        FAISS vectorstore
-    """
-    print(f"\n🔢 Criando embeddings com modelo: {Config.EMBEDDING_MODEL}")
-    
-    # Criar embeddings
     embeddings = HuggingFaceEmbeddings(
         model_name=Config.EMBEDDING_MODEL,
-        encode_kwargs={"normalize_embeddings": True}  # Normalizar para melhor similaridade
+        encode_kwargs={"normalize_embeddings": True}
     )
     
-    # Construir vectorstore
-    print("   └─ Construindo vectorstore FAISS...")
+    print("Construindo vectorstore...")
     vectorstore = FAISS.from_documents(chunks, embeddings)
     
-    # Salvar se caminho especificado
     if caminho_salvar:
         caminho_salvar.mkdir(parents=True, exist_ok=True)
         vectorstore.save_local(str(caminho_salvar))
-        print(f"   └─ Vectorstore salvo em: {caminho_salvar}")
+        print(f"Vectorstore salvo: {caminho_salvar.name}")
     
     return vectorstore
 
 
 def carregar_vectorstore_existente(caminho: Path):
-    """
-    Carrega um vectorstore FAISS já existente
-    
-    Args:
-        caminho: Caminho do vectorstore salvo
-        
-    Returns:
-        FAISS vectorstore ou None se não existir
-    """
+    """Carrega vectorstore existente"""
     if not caminho.exists():
         return None
     
-    print(f"\n📂 Carregando vectorstore existente de: {caminho}")
+    print(f"\nCarregando vectorstore: {caminho.name}")
     
     embeddings = HuggingFaceEmbeddings(
         model_name=Config.EMBEDDING_MODEL,
@@ -158,45 +113,30 @@ def carregar_vectorstore_existente(caminho: Path):
     vectorstore = FAISS.load_local(
         str(caminho), 
         embeddings,
-        allow_dangerous_deserialization=True  # Necessário para FAISS
+        allow_dangerous_deserialization=True
     )
     
-    print("   └─ Vectorstore carregado com sucesso")
     return vectorstore
 
 
 def criar_retriever(vectorstore):
-    """
-    Cria retriever com MMR e reranking
+    """Configura retriever com MMR e reranking"""
+    print(f"\nConfigurando retriever (MMR: {Config.USE_MMR}, Reranker: {Config.USE_RERANKER})")
     
-    Args:
-        vectorstore: FAISS vectorstore
-        
-    Returns:
-        Retriever configurado
-    """
-    print(f"\n🔍 Configurando retriever (MMR: {Config.USE_MMR}, Reranker: {Config.USE_RERANKER})")
-    
-    # Configurar retriever base
     if Config.USE_MMR:
         retriever = vectorstore.as_retriever(
-            search_type="mmr",  # Maximal Marginal Relevance
+            search_type="mmr",
             search_kwargs={
                 "k": Config.TOP_K,
                 "fetch_k": Config.FETCH_K,
             }
         )
-        print(f"   └─ MMR ativado (k={Config.TOP_K}, fetch_k={Config.FETCH_K})")
     else:
         retriever = vectorstore.as_retriever(
             search_kwargs={"k": Config.TOP_K}
         )
-        print(f"   └─ Busca por similaridade (k={Config.TOP_K})")
     
-    # Adicionar reranker se habilitado
     if Config.USE_RERANKER:
-        print(f"   └─ Adicionando reranker: {Config.RERANKER_MODEL}")
-        
         cross_encoder = HuggingFaceCrossEncoder(
             model_name=Config.RERANKER_MODEL
         )
@@ -215,40 +155,20 @@ def criar_retriever(vectorstore):
 
 
 def formatar_documentos(docs: List) -> str:
-    """
-    Formata documentos recuperados para o contexto
-    
-    Args:
-        docs: Lista de documentos
-        
-    Returns:
-        String formatada com contexto
-    """
+    """Formata documentos recuperados"""
     partes = []
     for doc in docs:
-        # Obter número da página
         page = doc.metadata.get("page_number", doc.metadata.get("page", ""))
         fonte = f"[Página {page}]" if page else "[Fonte desconhecida]"
-        
-        # Adicionar conteúdo formatado
         partes.append(f"{fonte}\n{doc.page_content}")
     
     return "\n\n---\n\n".join(partes)
 
 
 def construir_cadeia_rag(retriever):
-    """
-    Constrói a cadeia RAG completa
+    """Constrói cadeia RAG"""
+    print(f"\nModelo LLM: {Config.OLLAMA_MODEL}")
     
-    Args:
-        retriever: Retriever configurado
-        
-    Returns:
-        Cadeia RAG pronta para uso
-    """
-    print(f"\n🔗 Construindo cadeia RAG com modelo: {Config.OLLAMA_MODEL}")
-    
-    # Prompt especializado para NR-06
     system_prompt = """Você é um assistente especializado na Norma Regulamentadora NR-06 
 (Equipamentos de Proteção Individual - EPI) do Brasil.
 
@@ -273,14 +193,12 @@ PERGUNTA: {question}
 RESPOSTA:""")
     ])
     
-    # Inicializar LLM
     llm = ChatOllama(
         model=Config.OLLAMA_MODEL,
         base_url=Config.OLLAMA_BASE_URL,
         temperature=Config.OLLAMA_TEMPERATURE
     )
     
-    # Construir pipeline RAG
     rag_chain = (
         RunnableParallel({
             "docs": retriever,
@@ -295,77 +213,50 @@ RESPOSTA:""")
         | StrOutputParser()
     )
     
-    print("   └─ Cadeia RAG construída com sucesso")
-    
     return rag_chain
 
 
-# ======================= CLASSE PRINCIPAL =======================
-
 class AgenteNR06:
-    """Agente RAG para interação com o documento NR-06"""
+    """Agente RAG para NR-06"""
     
     def __init__(self, recriar_vectorstore: bool = False):
-        """
-        Inicializa o agente
-        
-        Args:
-            recriar_vectorstore: Se True, recria o vectorstore mesmo se existir
-        """
         self.chain = None
         self.vectorstore = None
         
-        # Verificar PDF
         if not verificar_pdf():
             raise FileNotFoundError(f"PDF não encontrado: {Config.PDF_PATH}")
         
-        # Carregar ou criar vectorstore
         if not recriar_vectorstore:
             self.vectorstore = carregar_vectorstore_existente(Config.VECTORSTORE_PATH)
         
         if self.vectorstore is None:
-            # Criar novo vectorstore
             chunks = carregar_e_dividir_documento(Config.PDF_PATH)
             self.vectorstore = construir_vectorstore(chunks, Config.VECTORSTORE_PATH)
         
-        # Criar retriever e cadeia
         retriever = criar_retriever(self.vectorstore)
         self.chain = construir_cadeia_rag(retriever)
     
     def perguntar(self, pergunta: str) -> str:
-        """
-        Faz uma pergunta ao agente
-        
-        Args:
-            pergunta: Pergunta em linguagem natural
-            
-        Returns:
-            Resposta do agente
-        """
+        """Processa pergunta e retorna resposta"""
         if not self.chain:
             raise RuntimeError("Cadeia RAG não inicializada")
         
         return self.chain.invoke(pergunta)
     
     def modo_interativo(self):
-        """Inicia modo de conversação interativa"""
+        """Interface interativa via terminal"""
         print("\n" + "="*70)
-        print("🤖 AGENTE NR-06 - Assistente sobre Equipamentos de Proteção Individual")
+        print("AGENTE NR-06")
         print("="*70)
-        print("\nDigite suas perguntas sobre a NR-06.")
-        print("Comandos especiais:")
-        print("  • 'sair' ou 'exit' - Encerra o programa")
-        print("  • 'limpar' - Limpa a tela")
-        print("\n" + "-"*70 + "\n")
+        print("\nComandos: 'sair' para encerrar, 'limpar' para limpar tela")
+        print("-"*70 + "\n")
         
         while True:
             try:
-                # Obter pergunta
-                pergunta = input("💬 Você: ").strip()
+                pergunta = input("Pergunta: ").strip()
                 
-                # Verificar comandos especiais
                 if pergunta.lower() in ['sair', 'exit', 'quit', 'q']:
-                    print("\n👋 Até logo!")
+                    print("\nEncerrando...")
                     break
                 
                 if pergunta.lower() in ['limpar', 'clear', 'cls']:
@@ -375,48 +266,40 @@ class AgenteNR06:
                 if not pergunta:
                     continue
                 
-                # Processar pergunta
-                print("\n🤔 Consultando documento...\n")
+                print("\nProcessando...\n")
                 resposta = self.perguntar(pergunta)
                 
-                # Exibir resposta
-                print(f"🤖 Agente: {resposta}\n")
+                print(f"Resposta:\n{resposta}\n")
                 print("-"*70 + "\n")
                 
             except KeyboardInterrupt:
-                print("\n\n👋 Interrompido pelo usuário. Até logo!")
+                print("\n\nInterrompido.")
                 break
             except Exception as e:
-                print(f"\n❌ Erro: {e}\n")
+                print(f"\nErro: {e}\n")
                 continue
 
-
-# ======================= EXECUÇÃO PRINCIPAL =======================
 
 def main():
     """Função principal"""
     print("\n" + "="*70)
-    print("🚀 INICIALIZANDO AGENTE RAG PARA NR-06")
+    print("Iniciando RAG Agent - NR-06")
     print("="*70)
     
     try:
-        # Verificar argumentos
         recriar = "--recriar" in sys.argv or "--rebuild" in sys.argv
         
         if recriar:
-            print("\n⚠️  Modo: RECRIAR vectorstore")
+            print("\nModo: Recriando vectorstore")
         
-        # Criar agente
         agente = AgenteNR06(recriar_vectorstore=recriar)
-        
-        # Iniciar modo interativo
         agente.modo_interativo()
         
     except KeyboardInterrupt:
-        print("\n\n👋 Interrompido pelo usuário.")
+        print("\n\nInterrompido.")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ ERRO FATAL: {e}")
+        print(f"\nErro: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
