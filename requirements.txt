@@ -1,0 +1,28 @@
+# --- LangChain core & integrations
+langchain-core>=0.2.0
+langchain>=0.2.0
+langchain-community>=0.2.0
+langchain-ollama>=0.1.0
+langchain-huggingface>=0.1.0
+
+# --- Vector store
+faiss-cpu>=1.7.4
+
+# --- PDF loader
+pypdf>=4.2.0
+
+# --- Embeddings / Reranker (HuggingFace)
+sentence-transformers>=2.6.0
+transformers>=4.40.0
+huggingface-hub>=0.23.0
+accelerate>=0.30.0
+
+# --- Torch (escolha UMA linha conforme seu ambiente)
+# torch>=2.2.0            # CPU (Windows/Linux/Mac) — mais simples
+# torch==2.2.0+cu121      # CUDA 12.1 (exemplo Linux) — precisa índice extra da PyTorch
+
+# --- Cliente Python do Ollama (para chamadas locais)
+ollama>=0.3.0
+
+# --- Utilidades
+numpy>=1.26.0
