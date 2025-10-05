@@ -1,8 +1,4 @@
-# 💬 Perguntas de Exemplo para o Agente NR-06
-
-Este documento contém exemplos de perguntas que você pode fazer ao agente RAG da NR-06.
-
-## 📋 Perguntas Gerais sobre a NR-06
+## Perguntas Gerais sobre a NR-06
 
 ### Conceitos Básicos
 ```
@@ -19,7 +15,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - O que significa EPC (Equipamento de Proteção Coletiva)?
 ```
 
-## 👷 Obrigações e Responsabilidades
+## Obrigações e Responsabilidades
 
 ### Empregador
 ```
@@ -45,7 +41,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - Como deve ser a comercialização de EPIs?
 ```
 
-## 🔍 Certificação e Aprovação
+## Certificação e Aprovação
 
 ```
 - Como obter o Certificado de Aprovação para um EPI?
@@ -55,7 +51,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - Como verificar se um CA é válido?
 ```
 
-## 🛡️ Tipos de EPIs
+## Tipos de EPIs
 
 ```
 - Quais tipos de EPIs são mencionados na NR-06?
@@ -67,7 +63,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - Existem EPIs para proteção dos pés?
 ```
 
-## 🔧 Uso e Manutenção
+## Uso e Manutenção
 
 ```
 - Como deve ser feita a higienização dos EPIs?
@@ -77,7 +73,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - O que fazer com EPI danificado?
 ```
 
-## 📚 Treinamento e Capacitação
+## Treinamento e Capacitação
 
 ```
 - É obrigatório treinar os trabalhadores sobre o uso de EPIs?
@@ -86,7 +82,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - O que deve conter no treinamento sobre EPIs?
 ```
 
-## ⚖️ Aspectos Legais
+## Aspectos Legais
 
 ```
 - Quais são as penalidades por não cumprir a NR-06?
@@ -95,7 +91,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - O que diz a lei sobre fornecimento gratuito de EPIs?
 ```
 
-## 🏭 Situações Específicas
+## Situações Específicas
 
 ```
 - Quais EPIs devem ser usados em trabalhos com eletricidade?
@@ -106,7 +102,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - Como proteger os olhos em trabalhos de soldagem?
 ```
 
-## 📊 Documentação
+## Documentação
 
 ```
 - Quais documentos devem ser mantidos sobre EPIs?
@@ -115,7 +111,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - Qual documentação o fabricante deve fornecer?
 ```
 
-## 🔄 Casos Especiais
+## Casos Especiais
 
 ```
 - O que fazer quando o EPI causa desconforto?
@@ -124,7 +120,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - Como lidar com trabalhadores que têm restrições ao uso de certos EPIs?
 ```
 
-## ❓ Perguntas Comparativas
+## Perguntas Comparativas
 
 ```
 - Qual a diferença entre EPI e EPC?
@@ -133,7 +129,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 - Quais EPIs são mais importantes?
 ```
 
-## 🔬 Perguntas Técnicas
+## Perguntas Técnicas
 
 ```
 - Quais normas técnicas são referenciadas na NR-06?
@@ -144,7 +140,7 @@ Este documento contém exemplos de perguntas que você pode fazer ao agente RAG 
 
 ## 💡 Dicas para Perguntas Melhores
 
-### ✅ Boas Práticas
+### Boas Práticas
 - Seja específico sobre o tipo de EPI ou situação
 - Faça uma pergunta por vez
 - Use termos técnicos quando apropriado
@@ -188,14 +184,3 @@ Perguntas mais complexas que testam a capacidade do agente:
 ```
 
 ---
-
-## 📝 Observações
-
-- O agente responde baseado no documento NR-06 fornecido
-- Sempre cita as páginas de referência nas respostas
-- Se algo não estiver no documento, o agente informará claramente
-- Para perguntas fora do escopo da NR-06, o agente indicará limitação
-
----
-
-**💡 Dica**: Comece com perguntas simples para entender como o agente funciona, depois avance para perguntas mais complexas!
